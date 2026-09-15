@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кто хочет представить себя миллионером</title>
+  <meta name="description" content="Корпоративная пародийная игра с вопросами из анкет сотрудников, подсказками и турнирной таблицей.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23040b2f'/%3E%3Cpath d='M32 7 47 17v30L32 57 17 47V17Z' fill='none' stroke='%23f6c453' stroke-width='5'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Arial' font-size='22' font-weight='700' fill='%23fff3b0'%3E?%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #f7fbff;
+      --muted: #a9badb;
+      --gold: #f4c34f;
+      --gold-2: #9f6d16;
+      --cyan: #57d7ff;
+      --blue: #07124a;
+      --blue-2: #0d1d74;
+      --violet: #47247d;
+      --red: #e05252;
+      --green: #40c779;
+      --panel: rgba(7, 18, 74, .82);
+      --panel-strong: rgba(3, 9, 41, .94);
+      --line: rgba(244, 195, 79, .72);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 14%, rgba(87, 215, 255, .26), transparent 23rem),
+        radial-gradient(circle at 16% 20%, rgba(244, 195, 79, .2), transparent 22rem),
+        linear-gradient(155deg, #02051e 0%, #06135a 44%, #180c38 100%);
+      overflow-x: hidden;
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      color: inherit;
+    }
+
+    .app {
+      position: relative;
+      min-height: 100vh;
+      padding: 24px;
+      isolation: isolate;
+    }
+
+    .app::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        repeating-radial-gradient(ellipse at 50% 42%, rgba(255,255,255,.07) 0 2px, transparent 3px 48px),
+        linear-gradient(90deg, transparent 0 8%, rgba(255,255,255,.08) 8.4%, transparent 9.2% 22%, rgba(255,255,255,.06) 22.4%, transparent 23.2% 77%, rgba(255,255,255,.06) 77.4%, transparent 78.2% 91%, rgba(255,255,255,.08) 91.4%, transparent 92.2%);
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .app::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(70deg, transparent 0 44%, rgba(87, 215, 255, .12) 48%, transparent 53%),
+        linear-gradient(110deg, transparent 0 46%, rgba(244, 195, 79, .13) 50%, transparent 55%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      max-width: 1240px;
+      margin: 0 auto 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      color: #fff7cf;
+      background: radial-gradient(circle, #122aa4 0%, #07124a 58%, #02051e 100%);
+      box-shadow: 0 0 26px rgba(244, 195, 79, .35), inset 0 0 16px rgba(87, 215, 255, .34);
+      font-weight: 900;
+      font-size: 1.35rem;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.3rem, 2.4vw, 2.25rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px;
+      max-width: 1240px;
+      margin: 0 auto;
+      align-items: stretch;
+    }
+
+    .screen {
+      min-height: calc(100vh - 130px);
+      border: 1px solid rgba(244, 195, 79, .4);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(6, 18, 83, .86), rgba(3, 7, 31, .94)),
+        radial-gradient(circle at center, rgba(87, 215, 255, .18), transparent 28rem);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .34), inset 0 0 0 1px rgba(255,255,255,.06);
+      overflow: hidden;
+    }
+
+    .intro {
+      display: grid;
+      min-height: calc(100vh - 130px);
+      grid-template-rows: auto 1fr auto;
+      place-items: center;
+      padding: clamp(24px, 5vw, 56px);
+      text-align: center;
+    }
+
+    .logo-burst {
+      position: relative;
+      display: grid;
+      width: min(78vw, 500px);
+      aspect-ratio: 1;
+      place-items: center;
+      margin: 10px auto 28px;
+      border-radius: 50%;
+      background:
+        repeating-conic-gradient(from 0deg, rgba(244, 195, 79, .92) 0 5deg, rgba(87, 215, 255, .88) 5deg 10deg, rgba(255,255,255,.12) 10deg 15deg),
+        radial-gradient(circle, #122aa4 0 38%, #07124a 39% 66%, #02051e 68%);
+      box-shadow: 0 0 80px rgba(87, 215, 255, .42), inset 0 0 0 18px rgba(2, 5, 30, .72);
+      animation: pulseGlow 2.6s ease-in-out infinite;
+    }
+
+    .logo-burst::before,
+    .logo-burst::after {
+      content: "";
+      position: absolute;
+      inset: 11%;
+      border: 4px solid rgba(255, 240, 177, .9);
+      transform: rotate(45deg);
+    }
+
+    .logo-burst::after {
+      inset: 23%;
+      border-color: rgba(87, 215, 255, .82);
+      transform: rotate(0deg);
+    }
+
+    .logo-title {
+      position: relative;
+      z-index: 1;
+      max-width: 78%;
+      font-size: clamp(1.5rem, 5vw, 3.4rem);
+      line-height: .95;
+      text-transform: uppercase;
+      font-weight: 950;
+      text-shadow: 0 4px 0 #07124a, 0 0 24px rgba(244, 195, 79, .7);
+    }
+
+    .intro-copy {
+      max-width: 720px;
+      color: #dce8ff;
+      font-size: clamp(1rem, 1.7vw, 1.22rem);
+      line-height: 1.55;
+    }
+
+    .intro-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 1px solid rgba(244, 195, 79, .72);
+      border-radius: 999px;
+      padding: 10px 18px;
+      background: linear-gradient(180deg, #182b83, #07124a);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 24px rgba(0,0,0,.22);
+      transition: transform .18s ease, filter .18s ease, border-color .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.12);
+    }
+
+    .btn.primary {
+      color: #110b01;
+      background: linear-gradient(180deg, #ffe38a, #f0a91d 62%, #a86b0f);
+      border-color: #fff1b6;
+      font-weight: 850;
+    }
+
+    .btn.ghost {
+      background: rgba(5, 12, 48, .72);
+    }
+
+    .btn.danger {
+      border-color: rgba(224, 82, 82, .9);
+      background: linear-gradient(180deg, #7f252f, #42101c);
+    }
+
+    .btn:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .game {
+      display: none;
+      min-height: calc(100vh - 130px);
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+      padding: clamp(16px, 2.5vw, 28px);
+    }
+
+    .game.active,
+    .intro.active {
+      display: grid;
+    }
+
+    .intro.hidden,
+    .game.hidden {
+      display: none;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .contestant {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: #dce8ff;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      border: 1px solid rgba(87, 215, 255, .28);
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: rgba(2, 7, 32, .58);
+      color: #e8f7ff;
+      white-space: nowrap;
+    }
+
+    .lifelines {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .lifeline {
+      display: grid;
+      width: 68px;
+      height: 42px;
+      place-items: center;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background: radial-gradient(circle, #162e99, #040b2f);
+      color: #fff5c7;
+      font-weight: 900;
+      box-shadow: 0 0 18px rgba(87, 215, 255, .24);
+    }
+
+    .lifeline.used {
+      color: #8a91aa;
+      border-color: #4e5574;
+      text-decoration: line-through;
+      filter: grayscale(.8);
+      pointer-events: none;
+    }
+
+    .host-area {
+      display: grid;
+      place-items: end center;
+      min-height: 260px;
+      position: relative;
+    }
+
+    .spotlight {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 100%, rgba(244,195,79,.16), transparent 34%),
+        linear-gradient(72deg, transparent 0 42%, rgba(87,215,255,.14) 46%, transparent 54%),
+        linear-gradient(108deg, transparent 0 42%, rgba(244,195,79,.15) 48%, transparent 56%);
+      pointer-events: none;
+    }
+
+    .question-number {
+      align-self: start;
+      justify-self: start;
+      color: var(--gold);
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .host-note {
+      position: relative;
+      max-width: 700px;
+      border: 1px solid rgba(87, 215, 255, .3);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(2, 7, 32, .65);
+      color: #dce8ff;
+      line-height: 1.45;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+
+    .question-box {
+      position: relative;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      padding: 20px clamp(18px, 4vw, 42px);
+      background: linear-gradient(180deg, #11267e, #07124a 55%, #050b30);
+      box-shadow: 0 0 28px rgba(87, 215, 255, .24), inset 0 0 0 1px rgba(255,255,255,.08);
+      text-align: center;
+      font-size: clamp(1.08rem, 2vw, 1.55rem);
+      font-weight: 780;
+      line-height: 1.35;
+    }
+
+    .question-box::before,
+    .question-box::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 11vw;
+      max-width: 140px;
+      height: 2px;
+      background: var(--gold);
+      transform: translateY(-50%);
+    }
+
+    .question-box::before {
+      right: 100%;
+    }
+
+    .question-box::after {
+      left: 100%;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 18px;
+      margin-top: 16px;
+    }
+
+    .answer {
+      min-height: 64px;
+      border: 2px solid rgba(244, 195, 79, .72);
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: linear-gradient(180deg, #11267e, #07124a 68%, #040820);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+      text-align: left;
+      font-size: clamp(.98rem, 1.4vw, 1.12rem);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .answer:hover:not(:disabled) {
+      border-color: #fff0a9;
+      background: linear-gradient(180deg, #1734ac, #0c1f78 68%, #07124a);
+    }
+
+    .answer .letter {
+      display: grid;
+      min-width: 28px;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 50%;
+      background: #f2bd34;
+      color: #110b01;
+      font-weight: 950;
+    }
+
+    .answer.hidden-option {
+      visibility: hidden;
+    }
+
+    .answer.locked {
+      animation: lockBlink .42s linear 3;
+      background: linear-gradient(180deg, #f6c453, #be7a12);
+      color: #110b01;
+    }
+
+    .answer.correct {
+      border-color: #bfffd8;
+      background: linear-gradient(180deg, #40c779, #16733e);
+      color: #061507;
+    }
+
+    .answer.wrong {
+      border-color: #ffd1d1;
+      background: linear-gradient(180deg, #e05252, #842232);
+      color: #fff;
+    }
+
+    .ladder {
+      border: 1px solid rgba(244, 195, 79, .42);
+      border-radius: 8px;
+      background: rgba(3, 9, 41, .78);
+      padding: 14px;
+      box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.06);
+    }
+
+    .ladder h2 {
+      margin-bottom: 10px;
+      color: var(--gold);
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+
+    .money-list {
+      display: grid;
+      gap: 5px;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .money-list li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: #c9d8ff;
+      font-weight: 720;
+      font-size: .94rem;
+    }
+
+    .money-list li.current {
+      color: #110b01;
+      background: linear-gradient(180deg, #ffe58f, #f0ad23);
+    }
+
+    .money-list li.safe {
+      color: #fff3bf;
+      border: 1px solid rgba(244,195,79,.35);
+    }
+
+    .side-panel {
+      margin-top: 14px;
+      border: 1px solid rgba(87, 215, 255, .26);
+      border-radius: 8px;
+      background: rgba(2, 7, 32, .52);
+      padding: 12px;
+    }
+
+    .side-panel h3 {
+      margin-bottom: 10px;
+      color: #e8f7ff;
+      font-size: .95rem;
+    }
+
+    .leaderboard {
+      display: grid;
+      gap: 8px;
+      max-height: 300px;
+      overflow: auto;
+    }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding-bottom: 7px;
+      color: #dce8ff;
+      font-size: .9rem;
+    }
+
+    .setup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      padding: 22px;
+      overflow: auto;
+      background: rgba(0, 0, 0, .72);
+    }
+
+    .setup.open,
+    .modal.open {
+      display: grid;
+    }
+
+    .setup-card,
+    .modal-card {
+      width: min(980px, 100%);
+      margin: auto;
+      border: 1px solid rgba(244, 195, 79, .5);
+      border-radius: 8px;
+      background: #050d35;
+      box-shadow: 0 24px 80px rgba(0,0,0,.45);
+      padding: clamp(18px, 3vw, 28px);
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    label {
+      color: #dce8ff;
+      font-weight: 720;
+      font-size: .92rem;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(87, 215, 255, .32);
+      border-radius: 8px;
+      background: rgba(2, 7, 32, .92);
+      color: #fff;
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+
+    .status {
+      min-height: 24px;
+      color: #fff3bf;
+      font-size: .92rem;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      padding: 22px;
+      background: rgba(0,0,0,.72);
+    }
+
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      align-items: end;
+      height: 280px;
+      margin: 24px 0 10px;
+      padding: 12px;
+      border: 1px solid rgba(87, 215, 255, .22);
+      border-radius: 8px;
+      background: rgba(2, 7, 32, .65);
+    }
+
+    .bar-wrap {
+      display: grid;
+      grid-template-rows: 1fr auto auto;
+      gap: 8px;
+      height: 100%;
+      text-align: center;
+      color: #dce8ff;
+    }
+
+    .bar {
+      align-self: end;
+      min-height: 8px;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, #ffe58f, #f0ad23 70%, #895609);
+      box-shadow: 0 0 18px rgba(244, 195, 79, .28);
+    }
+
+    .result-actions,
+    .setup-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      justify-content: flex-end;
+    }
+
+    .phone-bubble {
+      position: fixed;
+      right: 28px;
+      bottom: 28px;
+      z-index: 25;
+      display: none;
+      width: min(360px, calc(100vw - 40px));
+      border: 1px solid rgba(244, 195, 79, .58);
+      border-radius: 8px;
+      background: #07124a;
+      padding: 16px;
+      box-shadow: 0 18px 44px rgba(0,0,0,.4);
+      line-height: 1.45;
+    }
+
+    .phone-bubble.open {
+      display: block;
+      animation: slideUp .24s ease-out;
+    }
+
+    .phone-bubble strong {
+      color: var(--gold);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 60;
+      display: none;
+      max-width: min(620px, calc(100vw - 34px));
+      transform: translateX(-50%);
+      border: 1px solid rgba(244, 195, 79, .58);
+      border-radius: 999px;
+      background: rgba(3, 9, 41, .96);
+      padding: 12px 18px;
+      color: #fff3bf;
+      box-shadow: 0 18px 44px rgba(0,0,0,.4);
+    }
+
+    .toast.open {
+      display: block;
+    }
+
+    .name-modal input {
+      margin-top: 14px;
+    }
+
+    .sound-toggle {
+      min-width: 44px;
+      padding-inline: 14px;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { filter: brightness(1); transform: scale(1); }
+      50% { filter: brightness(1.1); transform: scale(1.015); }
+    }
+
+    @keyframes lockBlink {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.35); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 980px) {
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .ladder {
+        order: -1;
+      }
+
+      .money-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 14px;
+      }
+
+      .topbar,
+      .hud,
+      .setup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: start;
+      }
+
+      .top-actions,
+      .lifelines {
+        justify-content: flex-start;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .question-box {
+        border-radius: 24px;
+      }
+
+      .question-box::before,
+      .question-box::after {
+        display: none;
+      }
+
+      .answer {
+        border-radius: 22px;
+      }
+
+      .money-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 460px) {
+      .brand {
+        align-items: start;
+      }
+
+      .mark {
+        width: 46px;
+        height: 46px;
+      }
+
+      .money-list {
+        grid-template-columns: 1fr;
+      }
+
+      .lifeline {
+        width: 62px;
+      }
+
+      .bars {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">₽?</div>
+        <div>
+          <h1>Кто хочет представить себя миллионером</h1>
+          <p class="subtitle">Корпоративная викторина по фактам сотрудников</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn ghost sound-toggle" id="soundToggle" type="button" aria-label="Включить или выключить звук">Звук: вкл</button>
+        <button class="btn ghost" id="openSetup" type="button">База и Firebase</button>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section class="screen">
+        <div class="intro active" id="intro">
+          <div></div>
+          <div>
+            <div class="logo-burst" aria-hidden="true">
+              <div class="logo-title">Представить себя миллионером</div>
+            </div>
+            <p class="intro-copy">Отвечайте на вопросы, собранные из анкет коллег. Вопросы перевернуты: факт превращается в загадку, а варианты ответа всегда имена сотрудников.</p>
+            <div class="intro-actions">
+              <button class="btn primary" id="startGame" type="button">Начать игру</button>
+              <button class="btn ghost" id="showBoard" type="button">Турнирная таблица</button>
+            </div>
+          </div>
+          <p class="hint">Для боевого запуска импортируйте CSV из Google Таблицы и вставьте Firebase config в настройках.</p>
+        </div>
+
+        <div class="game hidden" id="game">
+          <div class="hud">
+            <div>
+              <div class="question-number" id="questionMeta">Вопрос 1 из 15</div>
+              <div class="contestant">
+                <span class="pill" id="playerLabel">Игрок: Гость</span>
+                <span class="pill" id="bankLabel">На кону: 1 000 ₽</span>
+                <span class="pill" id="safeLabel">Несгораемая сумма: 0 ₽</span>
+              </div>
+            </div>
+            <div class="lifelines" aria-label="Подсказки">
+              <button class="lifeline" id="fiftyBtn" type="button" title="50 на 50">50:50</button>
+              <button class="lifeline" id="audienceBtn" type="button" title="Помощь зала">Зал</button>
+              <button class="lifeline" id="phoneBtn" type="button" title="Звонок другу">☎</button>
+            </div>
+          </div>
+
+          <div class="host-area">
+            <div class="spotlight"></div>
+            <p class="host-note" id="hostNote">Добро пожаловать в студию. Сегодня мы проверяем не эрудицию, а то, насколько внимательно вы слушали коллег на кухне.</p>
+          </div>
+
+          <div>
+            <div class="question-box" id="questionText">Вопрос появится здесь</div>
+            <div class="answers" id="answers"></div>
+            <div class="result-actions">
+              <button class="btn ghost" id="walkAwayBtn" type="button">Забрать деньги</button>
+              <button class="btn danger" id="restartBtn" type="button">Начать заново</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="ladder" aria-label="Лестница призов">
+        <h2>Призовой фонд</h2>
+        <ol class="money-list" id="moneyList"></ol>
+        <div class="side-panel">
+          <h3>Турнирная таблица</h3>
+          <div class="leaderboard" id="leaderboard"></div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <section class="setup" id="setup" aria-label="Настройки">
+    <div class="setup-card">
+      <h2>База вопросов и Firebase</h2>
+      <p class="hint">Можно играть на демо-данных, вставить CSV из Google Таблицы или указать опубликованный CSV URL. Firebase config нужен только для общей турнирной таблицы; без него результаты сохраняются локально в браузере.</p>
+      <div class="setup-grid">
+        <div class="field">
+          <label for="csvUrl">CSV URL из опубликованной Google Таблицы</label>
+          <input id="csvUrl" type="url" placeholder="https://docs.google.com/spreadsheets/.../pub?output=csv">
+          <button class="btn ghost" id="loadCsvUrl" type="button">Загрузить CSV</button>
+          <p class="hint">Google Форма должна писать ответы в Таблицу. Затем опубликуйте лист как CSV.</p>
+        </div>
+        <div class="field">
+          <label for="playerName">Имя игрока для таблицы</label>
+          <input id="playerName" type="text" placeholder="Например, Настя">
+          <button class="btn ghost" id="savePlayerName" type="button">Запомнить имя</button>
+        </div>
+        <div class="field">
+          <label for="csvPaste">Вставить CSV вручную</label>
+          <textarea id="csvPaste" placeholder="Имя и фамилия,Любимая музыкальная группа или исполнитель,Любимый цвет..."></textarea>
+          <button class="btn ghost" id="loadCsvPaste" type="button">Импортировать CSV</button>
+        </div>
+        <div class="field">
+          <label for="firebaseConfig">Firebase config JSON</label>
+          <textarea id="firebaseConfig" spellcheck="false" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","appId":"..."}'></textarea>
+          <button class="btn ghost" id="saveFirebase" type="button">Подключить Firebase</button>
+          <p class="hint">Используется Cloud Firestore, коллекция `leaderboard`. Настройте правила записи/чтения под вашу корпоративную среду.</p>
+        </div>
+      </div>
+      <p class="status" id="setupStatus"></p>
+      <div class="setup-actions">
+        <button class="btn ghost" id="downloadSample" type="button">Скачать пример CSV</button>
+        <button class="btn primary" id="closeSetup" type="button">Готово</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal" id="audienceModal" aria-label="Помощь зала">
+    <div class="modal-card">
+      <h2>Помощь зала</h2>
+      <div class="bars" id="audienceBars"></div>
+      <div class="result-actions">
+        <button class="btn primary" id="closeAudience" type="button">Вернуться к вопросу</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal name-modal" id="resultModal" aria-label="Результат игры">
+    <div class="modal-card">
+      <h2 id="resultTitle">Игра окончена</h2>
+      <p id="resultText" class="intro-copy"></p>
+      <input id="resultPlayerName" type="text" placeholder="Имя для турнирной таблицы">
+      <div class="result-actions">
+        <button class="btn ghost" id="playAgain" type="button">Играть снова</button>
+        <button class="btn primary" id="saveScoreBtn" type="button">Записать результат</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="phone-bubble" id="phoneBubble"></div>
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      orderBy,
+      limit,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const prizes = [
+      1000, 2000, 3000, 5000, 10000,
+      15000, 25000, 50000, 100000, 200000,
+      400000, 600000, 800000, 900000, 1000000
+    ];
+
+    const sampleEmployees = [
+      { name: "Аня Морозова", team: "Маркетинг", band: "Daft Punk", color: "бирюзовый", food: "сырники", movie: "Амели", childhood: "археологом", talent: "угадывает мелодии с трех нот", hobby: "собирает старые билеты", place: "Токио", drink: "матча", desk: "мини-диско-шар", phrase: "сейчас красиво упакуем", power: "телепорт", cooking: "паста с лимоном", school: "литература", secret: "умеет читать по губам" },
+      { name: "Илья Петров", team: "Продажи", band: "The Killers", color: "красный", food: "том-ям", movie: "Начало", childhood: "пожарным", talent: "быстро собирает кубик", hobby: "ночные велопрогулки", place: "Рейкьявик", drink: "эспрессо", desk: "каменная уточка без уточки", phrase: "давайте добьем красиво", power: "останавливать время", cooking: "чили кон карне", school: "математика", secret: "однажды выступал стендапом" },
+      { name: "Лена Ким", team: "HR", band: "Queen", color: "желтый", food: "рамен", movie: "Шрек 2", childhood: "ветеринаром", talent: "помнит дни рождения", hobby: "керамика", place: "Лиссабон", drink: "какао", desk: "резиновый молоток для совещаний", phrase: "а как мы это почувствуем?", power: "говорить на всех языках", cooking: "банановый хлеб", school: "биология", secret: "училась играть на барабанах" },
+      { name: "Максим Волков", team: "Разработка", band: "Metallica", color: "черный", food: "плов", movie: "Матрица", childhood: "изобретателем", talent: "делает идеальные блины", hobby: "шахматные задачи", place: "Новая Зеландия", drink: "черный чай", desk: "лампа в форме ракеты", phrase: "это почти готово", power: "читать документацию мгновенно", cooking: "блины", school: "физика", secret: "пишет рассказы" },
+      { name: "Саша Орлова", team: "Дизайн", band: "Florence + The Machine", color: "фиолетовый", food: "пицца с грушей", movie: "Отель Гранд Будапешт", childhood: "акробатом", talent: "рисует людей в метро по памяти", hobby: "винтажные открытки", place: "Мехико", drink: "айс-латте", desk: "кисть размером с ладонь", phrase: "дайте мне пять минут на сетку", power: "материализовать идеи", cooking: "ризотто", school: "история", secret: "боится лифтов" },
+      { name: "Дима Соколов", team: "Финансы", band: "Би-2", color: "зеленый", food: "хинкали", movie: "Назад в будущее", childhood: "космонавтом", talent: "считает проценты быстрее калькулятора", hobby: "настольные игры", place: "Буэнос-Айрес", drink: "облепиховый чай", desk: "песочные часы", phrase: "сверим цифры", power: "видеть курс валют завтра", cooking: "сырный суп", school: "география", secret: "коллекционирует значки" },
+      { name: "Маша Белова", team: "Поддержка", band: "Muse", color: "синий", food: "тако", movie: "Душа", childhood: "диктором радио", talent: "успокаивает любых клиентов", hobby: "сад на подоконнике", place: "Сеул", drink: "жасминовый чай", desk: "маленький гонг", phrase: "я уже написала человеку", power: "лечить настроение", cooking: "тако", school: "иностранный язык", secret: "ведет дневник наблюдений за облаками" },
+      { name: "Костя Егоров", team: "Операции", band: "Arctic Monkeys", color: "оранжевый", food: "борщ", movie: "Большой куш", childhood: "машинистом поезда", talent: "чинит все скотчем и уверенностью", hobby: "маршруты поездов", place: "Эдинбург", drink: "квас", desk: "компас", phrase: "сейчас разрулим", power: "перематывать пробки", cooking: "борщ", school: "труд", secret: "танцует сальсу" }
+    ];
+
+    const fieldMap = {
+      "Любимая музыкальная группа или исполнитель": { key: "band", question: value => `Кто назвал любимой группой или исполнителем «${value}»?` },
+      "Любимый цвет": { key: "color", question: value => `У кого любимый цвет — ${value}?` },
+      "Любимое блюдо": { key: "food", question: value => `Кто готов выбрать «${value}» даже в финальном раунде?` },
+      "Любимый фильм или сериал": { key: "movie", question: value => `Чей любимый фильм или сериал — «${value}»?` },
+      "Любимая книга, комикс или игра": { key: "book", question: value => `Кто записал любимой книгой, комиксом или игрой «${value}»?` },
+      "Кем вы хотели стать в детстве?": { key: "childhood", question: value => `Кто в детстве хотел стать ${value}?` },
+      "Неожиданный навык или скрытый талант": { key: "talent", question: value => `Кто обладает талантом: ${value}?` },
+      "Самое необычное хобби": { key: "hobby", question: value => `Чье необычное хобби — ${value}?` },
+      "Город или страна, куда вы мечтаете съездить": { key: "place", question: value => `Кто мечтает съездить в ${value}?` },
+      "Любимый напиток рабочего дня": { key: "drink", question: value => `Кто держится на напитке «${value}»?` },
+      "Самый странный предмет на вашем рабочем столе": { key: "desk", question: value => `У кого на рабочем столе есть «${value}»?` },
+      "Фраза, которую вы часто говорите": { key: "phrase", question: value => `Кто часто говорит: «${value}»?` },
+      "Суперспособность, которую вы бы выбрали": { key: "power", question: value => `Кто выбрал бы суперспособность: ${value}?` },
+      "Что вы умеете готовить лучше всего?": { key: "cooking", question: value => `Кто лучше всего готовит «${value}»?` },
+      "Какая песня могла бы быть вашим выходом на сцену?": { key: "walkout", question: value => `Кто вышел бы на сцену под «${value}»?` },
+      "Какой предмет в школе вам нравился больше всего?": { key: "school", question: value => `Кому в школе больше всего нравился предмет «${value}»?` },
+      "Один факт о вас, который почти никто не знает": { key: "secret", question: value => `Про кого почти никто не знает, что он или она ${value}?` }
+    };
+
+    const aliasMap = {
+      "Имя и фамилия": "name",
+      "Как вас можно называть в игре?": "name",
+      "Команда / отдел": "team"
+    };
+
+    const state = {
+      employees: [],
+      questions: [],
+      index: 0,
+      selected: null,
+      locked: false,
+      usedOptionNames: new Set(),
+      lifelines: { fifty: false, audience: false, phone: false },
+      playerName: localStorage.getItem("millionaire.playerName") || "",
+      sound: localStorage.getItem("millionaire.sound") !== "off",
+      firebase: null,
+      lastOutcome: null
+    };
+
+    const $ = selector => document.querySelector(selector);
+    const els = {
+      intro: $("#intro"),
+      game: $("#game"),
+      moneyList: $("#moneyList"),
+      leaderboard: $("#leaderboard"),
+      questionMeta: $("#questionMeta"),
+      playerLabel: $("#playerLabel"),
+      bankLabel: $("#bankLabel"),
+      safeLabel: $("#safeLabel"),
+      hostNote: $("#hostNote"),
+      questionText: $("#questionText"),
+      answers: $("#answers"),
+      setup: $("#setup"),
+      setupStatus: $("#setupStatus"),
+      audienceModal: $("#audienceModal"),
+      audienceBars: $("#audienceBars"),
+      resultModal: $("#resultModal"),
+      resultTitle: $("#resultTitle"),
+      resultText: $("#resultText"),
+      resultPlayerName: $("#resultPlayerName"),
+      phoneBubble: $("#phoneBubble"),
+      toast: $("#toast"),
+      soundToggle: $("#soundToggle")
+    };
+
+    function formatMoney(value) {
+      return `${value.toLocaleString("ru-RU")} ₽`;
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function toast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("open");
+      window.setTimeout(() => els.toast.classList.remove("open"), 3200);
+    }
+
+    let audioCtx;
+    function beep(type = "tick") {
+      if (!state.sound) return;
+      audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const settings = {
+        tick: [440, 660, .08],
+        lock: [220, 520, .18],
+        correct: [540, 920, .32],
+        wrong: [180, 90, .45],
+        win: [660, 1040, .65]
+      }[type];
+      osc.frequency.setValueAtTime(settings[0], now);
+      osc.frequency.exponentialRampToValueAtTime(settings[1], now + settings[2]);
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.16, now + .02);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + settings[2]);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + settings[2] + .02);
+    }
+
+    function renderMoney() {
+      els.moneyList.innerHTML = "";
+      [...prizes].reverse().forEach((amount, reverseIndex) => {
+        const actualIndex = prizes.length - 1 - reverseIndex;
+        const li = document.createElement("li");
+        li.className = [
+          actualIndex === state.index ? "current" : "",
+          actualIndex === 4 || actualIndex === 9 || actualIndex === 14 ? "safe" : ""
+        ].filter(Boolean).join(" ");
+        li.innerHTML = `<span>${actualIndex + 1}</span><span>${formatMoney(amount)}</span>`;
+        els.moneyList.appendChild(li);
+      });
+    }
+
+    function currentPrize() {
+      return prizes[state.index] || prizes[prizes.length - 1];
+    }
+
+    function guaranteedPrize() {
+      if (state.index > 9) return prizes[9];
+      if (state.index > 4) return prizes[4];
+      return 0;
+    }
+
+    function normalizeEmployee(row) {
+      const normalized = {};
+      for (const [header, value] of Object.entries(row)) {
+        const cleanValue = String(value || "").trim();
+        if (!cleanValue) continue;
+        if (aliasMap[header]) normalized[aliasMap[header]] = cleanValue;
+        if (fieldMap[header]) normalized[fieldMap[header].key] = cleanValue;
+      }
+      return normalized.name ? normalized : null;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && quoted && next === '"') {
+          value += '"';
+          i++;
+        } else if (char === '"') {
+          quoted = !quoted;
+        } else if (char === "," && !quoted) {
+          row.push(value);
+          value = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(value);
+          if (row.some(cell => cell.trim())) rows.push(row);
+          row = [];
+          value = "";
+        } else {
+          value += char;
+        }
+      }
+      row.push(value);
+      if (row.some(cell => cell.trim())) rows.push(row);
+      if (rows.length < 2) return [];
+      const headers = rows[0].map(cell => cell.trim());
+      return rows.slice(1).map(cells => {
+        const item = {};
+        headers.forEach((header, index) => {
+          item[header] = cells[index] || "";
+        });
+        return item;
+      });
+    }
+
+    function employeesFromCsv(text) {
+      return parseCsv(text).map(normalizeEmployee).filter(Boolean);
+    }
+
+    function generateQuestions(employees) {
+      const candidates = [];
+      const templateByKey = Object.values(fieldMap).reduce((acc, template) => {
+        acc[template.key] = template;
+        return acc;
+      }, {});
+
+      employees.forEach(employee => {
+        Object.keys(templateByKey).forEach(key => {
+          const value = String(employee[key] || "").trim();
+          if (value) {
+            candidates.push({
+              employee,
+              answer: employee.name,
+              prompt: templateByKey[key].question(value),
+              fact: value
+            });
+          }
+        });
+      });
+
+      const selected = [];
+      const usedCorrect = new Set();
+      const primary = shuffle(candidates).filter(candidate => !usedCorrect.has(candidate.answer) && usedCorrect.add(candidate.answer));
+      const secondary = shuffle(candidates).filter(candidate => !selected.some(item => item.prompt === candidate.prompt));
+      for (const candidate of [...primary, ...secondary]) {
+        if (selected.length >= 15) break;
+        if (selected.some(item => item.prompt === candidate.prompt)) continue;
+        selected.push(buildQuestion(candidate, employees));
+      }
+      return selected;
+    }
+
+    function buildQuestion(candidate, employees) {
+      const wrongPool = employees
+        .map(employee => employee.name)
+        .filter(name => name !== candidate.answer);
+      const freshWrong = wrongPool.filter(name => !state.usedOptionNames.has(name));
+      let wrongs = shuffle(freshWrong).slice(0, 3);
+      if (wrongs.length < 3) {
+        wrongs = [...wrongs, ...shuffle(wrongPool.filter(name => !wrongs.includes(name))).slice(0, 3 - wrongs.length)];
+      }
+      wrongs.forEach(name => state.usedOptionNames.add(name));
+      const options = shuffle([candidate.answer, ...wrongs]).map((name, index) => ({
+        id: String.fromCharCode(65 + index),
+        name,
+        correct: name === candidate.answer
+      }));
+      return { prompt: candidate.prompt, answer: candidate.answer, options };
+    }
+
+    function startGame() {
+      const name = ($("#playerName").value || state.playerName || "Гость").trim();
+      state.playerName = name;
+      localStorage.setItem("millionaire.playerName", name);
+      state.index = 0;
+      state.selected = null;
+      state.locked = false;
+      state.lifelines = { fifty: false, audience: false, phone: false };
+      state.usedOptionNames = new Set();
+      state.questions = generateQuestions(state.employees);
+      if (state.employees.length < 4) {
+        toast("Нужно минимум 4 сотрудника, чтобы собрать варианты ответов.");
+        return;
+      }
+      if (state.questions.length < 15) {
+        toast(`Собрано ${state.questions.length} вопросов. Для полного шоу добавьте больше фактов в анкету.`);
+      }
+      els.intro.classList.add("hidden");
+      els.intro.classList.remove("active");
+      els.game.classList.add("active");
+      els.game.classList.remove("hidden");
+      els.phoneBubble.classList.remove("open");
+      renderQuestion();
+      beep("tick");
+    }
+
+    function renderQuestion() {
+      const question = state.questions[state.index];
+      if (!question) {
+        finishGame("win", prizes[prizes.length - 1]);
+        return;
+      }
+      state.locked = false;
+      els.questionMeta.textContent = `Вопрос ${state.index + 1} из 15`;
+      els.playerLabel.textContent = `Игрок: ${state.playerName || "Гость"}`;
+      els.bankLabel.textContent = `На кону: ${formatMoney(currentPrize())}`;
+      els.safeLabel.textContent = `Несгораемая сумма: ${formatMoney(guaranteedPrize())}`;
+      els.hostNote.textContent = hostLine();
+      els.questionText.textContent = question.prompt;
+      els.answers.innerHTML = "";
+      question.options.forEach(option => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.type = "button";
+        button.dataset.name = option.name;
+        button.dataset.correct = option.correct ? "true" : "false";
+        button.innerHTML = `<span class="letter">${option.id}</span><span>${option.name}</span>`;
+        button.addEventListener("click", () => chooseAnswer(button, option));
+        els.answers.appendChild(button);
+      });
+      $("#fiftyBtn").classList.toggle("used", state.lifelines.fifty);
+      $("#audienceBtn").classList.toggle("used", state.lifelines.audience);
+      $("#phoneBtn").classList.toggle("used", state.lifelines.phone);
+      renderMoney();
+    }
+
+    function hostLine() {
+      const lines = [
+        "В студии напряжение: кто-то сейчас вспомнит чужой любимый цвет и станет богаче.",
+        "Все просто: четыре имени, один факт и ни одного права сказать «я просто тыкнул».",
+        "Если сомневаетесь, слушайте внутреннего корпоративного детектива.",
+        "Этот вопрос мог родиться только из анкеты, заполненной честно и немного безрассудно."
+      ];
+      return lines[state.index % lines.length];
+    }
+
+    function chooseAnswer(button, option) {
+      if (state.locked) return;
+      state.locked = true;
+      button.classList.add("locked");
+      beep("lock");
+      window.setTimeout(() => {
+        const buttons = [...els.answers.querySelectorAll(".answer")];
+        buttons.forEach(item => {
+          item.disabled = true;
+          if (item.dataset.correct === "true") item.classList.add("correct");
+        });
+        if (option.correct) {
+          beep(state.index === 14 ? "win" : "correct");
+          if (state.index === prizes.length - 1) {
+            finishGame("win", prizes[prizes.length - 1]);
+          } else {
+            state.index++;
+            window.setTimeout(renderQuestion, 1100);
+          }
+        } else {
+          button.classList.add("wrong");
+          beep("wrong");
+          finishGame("lost", guaranteedPrize(), true);
+        }
+      }, 900);
+    }
+
+    function useFifty() {
+      if (state.lifelines.fifty || state.locked) return;
+      state.lifelines.fifty = true;
+      const wrongButtons = [...els.answers.querySelectorAll(".answer")]
+        .filter(button => button.dataset.correct !== "true");
+      shuffle(wrongButtons).slice(0, 2).forEach(button => button.classList.add("hidden-option"));
+      $("#fiftyBtn").classList.add("used");
+      toast("Два неправильных варианта исчезли.");
+      beep("tick");
+    }
+
+    function useAudience() {
+      if (state.lifelines.audience || state.locked) return;
+      state.lifelines.audience = true;
+      $("#audienceBtn").classList.add("used");
+      const correctIndex = state.questions[state.index].options.findIndex(option => option.correct);
+      const values = randomAudience(correctIndex);
+      els.audienceBars.innerHTML = "";
+      state.questions[state.index].options.forEach((option, index) => {
+        const wrap = document.createElement("div");
+        wrap.className = "bar-wrap";
+        wrap.innerHTML = `<div class="bar" style="height:${values[index]}%"></div><strong>${values[index]}%</strong><span>${option.id}</span>`;
+        els.audienceBars.appendChild(wrap);
+      });
+      els.audienceModal.classList.add("open");
+      beep("tick");
+    }
+
+    function randomAudience(correctIndex) {
+      const correct = 52 + Math.floor(Math.random() * 24);
+      let rest = 100 - correct;
+      const values = [0, 0, 0, 0];
+      values[correctIndex] = correct;
+      const otherIndexes = [0, 1, 2, 3].filter(index => index !== correctIndex);
+      otherIndexes.forEach((index, position) => {
+        const value = position === otherIndexes.length - 1 ? rest : Math.max(3, Math.floor(Math.random() * (rest - 6)));
+        values[index] = value;
+        rest -= value;
+      });
+      return values;
+    }
+
+    function usePhone() {
+      if (state.lifelines.phone || state.locked) return;
+      state.lifelines.phone = true;
+      $("#phoneBtn").classList.add("used");
+      const answer = state.questions[state.index].answer;
+      els.phoneBubble.innerHTML = `<strong>Звонок другу</strong><br>Да, привет. Я почти уверен, что правильный ответ — <strong>${answer}</strong>. Голос в трубке звучит подозрительно уверенно.`;
+      els.phoneBubble.classList.add("open");
+      window.setTimeout(() => els.phoneBubble.classList.remove("open"), 7200);
+      beep("tick");
+    }
+
+    function walkAway() {
+      const amount = state.index === 0 ? 0 : prizes[state.index - 1];
+      finishGame("walk", amount);
+    }
+
+    function finishGame(type, amount, delayed = false) {
+      state.lastOutcome = { type, amount, question: state.index + 1 };
+      const show = () => {
+        const title = type === "win" ? "Вы миллионер!" : type === "walk" ? "Деньги забраны" : "Неверный ответ";
+        const text = type === "win"
+          ? `Финал взят. В турнирную таблицу уйдет ${formatMoney(amount)} и статус человека, который слишком хорошо знает коллег.`
+          : type === "walk"
+            ? `Вы остановились и забрали ${formatMoney(amount)}. Иногда мудрость выглядит именно так.`
+            : `Игра окончена. Несгораемая сумма: ${formatMoney(amount)}. Можно записать результат и попробовать еще раз.`;
+        els.resultTitle.textContent = title;
+        els.resultText.textContent = text;
+        els.resultPlayerName.value = state.playerName || "";
+        els.resultModal.classList.add("open");
+      };
+      window.setTimeout(show, delayed ? 1250 : 250);
+    }
+
+    async function saveScore() {
+      const name = ($("#resultPlayerName").value || state.playerName || "Гость").trim();
+      state.playerName = name;
+      localStorage.setItem("millionaire.playerName", name);
+      const score = {
+        name,
+        amount: state.lastOutcome?.amount || 0,
+        outcome: state.lastOutcome?.type || "unknown",
+        date: new Date().toISOString()
+      };
+      if (state.firebase?.db) {
+        try {
+          await addDoc(collection(state.firebase.db, "leaderboard"), {
+            ...score,
+            createdAt: serverTimestamp()
+          });
+          toast("Результат записан в Firebase.");
+        } catch (error) {
+          saveLocalScore(score);
+          toast("Firebase не принял запись, результат сохранен локально.");
+        }
+      } else {
+        saveLocalScore(score);
+        toast("Результат сохранен локально.");
+      }
+      await loadLeaderboard();
+      els.resultModal.classList.remove("open");
+    }
+
+    function saveLocalScore(score) {
+      const scores = JSON.parse(localStorage.getItem("millionaire.leaderboard") || "[]");
+      scores.push(score);
+      scores.sort((a, b) => b.amount - a.amount);
+      localStorage.setItem("millionaire.leaderboard", JSON.stringify(scores.slice(0, 20)));
+    }
+
+    async function loadLeaderboard() {
+      let scores = [];
+      if (state.firebase?.db) {
+        try {
+          const q = query(collection(state.firebase.db, "leaderboard"), orderBy("amount", "desc"), limit(10));
+          const snap = await getDocs(q);
+          scores = snap.docs.map(doc => doc.data());
+        } catch (error) {
+          scores = [];
+        }
+      }
+      if (!scores.length) {
+        scores = JSON.parse(localStorage.getItem("millionaire.leaderboard") || "[]");
+      }
+      renderLeaderboard(scores);
+    }
+
+    function renderLeaderboard(scores) {
+      els.leaderboard.innerHTML = "";
+      if (!scores.length) {
+        els.leaderboard.innerHTML = `<p class="hint">Пока никто не забрал деньги.</p>`;
+        return;
+      }
+      scores.slice(0, 10).forEach((score, index) => {
+        const row = document.createElement("div");
+        row.className = "score-row";
+        row.innerHTML = `<span>${index + 1}. ${score.name || "Гость"}</span><strong>${formatMoney(Number(score.amount || 0))}</strong>`;
+        els.leaderboard.appendChild(row);
+      });
+    }
+
+    function showLeaderboardOnly() {
+      toast("Турнирная таблица справа. После Firebase-подключения она станет общей.");
+      loadLeaderboard();
+    }
+
+    async function connectFirebase(raw) {
+      const config = JSON.parse(raw);
+      const app = initializeApp(config);
+      state.firebase = { app, db: getFirestore(app) };
+      localStorage.setItem("millionaire.firebaseConfig", raw);
+      await loadLeaderboard();
+    }
+
+    function setEmployees(employees, source) {
+      if (employees.length < 4) {
+        els.setupStatus.textContent = "В базе должно быть минимум 4 сотрудника.";
+        return;
+      }
+      state.employees = employees;
+      localStorage.setItem("millionaire.employees", JSON.stringify(employees));
+      els.setupStatus.textContent = `Загружено сотрудников: ${employees.length}. Источник: ${source}.`;
+    }
+
+    function makeSampleCsv() {
+      const headers = ["Имя и фамилия", ...Object.keys(fieldMap)];
+      const rows = sampleEmployees.map(employee => headers.map(header => {
+        const key = aliasMap[header] || fieldMap[header]?.key;
+        const value = employee[key] || "";
+        return `"${String(value).replaceAll('"', '""')}"`;
+      }).join(","));
+      return `${headers.join(",")}\n${rows.join("\n")}`;
+    }
+
+    function downloadSampleCsv() {
+      const blob = new Blob([makeSampleCsv()], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "millionaire-employees-sample.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadCsvFromUrl() {
+      const url = $("#csvUrl").value.trim();
+      if (!url) return;
+      els.setupStatus.textContent = "Загружаю CSV...";
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        setEmployees(employeesFromCsv(text), "Google Таблица");
+      } catch (error) {
+        els.setupStatus.textContent = "Не удалось загрузить CSV. Проверьте, что таблица опубликована в интернете.";
+      }
+    }
+
+    function resetToIntro() {
+      els.resultModal.classList.remove("open");
+      els.game.classList.remove("active");
+      els.game.classList.add("hidden");
+      els.intro.classList.remove("hidden");
+      els.intro.classList.add("active");
+      renderMoney();
+    }
+
+    function wireEvents() {
+      $("#startGame").addEventListener("click", startGame);
+      $("#showBoard").addEventListener("click", showLeaderboardOnly);
+      $("#openSetup").addEventListener("click", () => els.setup.classList.add("open"));
+      $("#closeSetup").addEventListener("click", () => els.setup.classList.remove("open"));
+      $("#loadCsvPaste").addEventListener("click", () => setEmployees(employeesFromCsv($("#csvPaste").value), "вставленный CSV"));
+      $("#loadCsvUrl").addEventListener("click", loadCsvFromUrl);
+      $("#downloadSample").addEventListener("click", downloadSampleCsv);
+      $("#savePlayerName").addEventListener("click", () => {
+        state.playerName = $("#playerName").value.trim() || "Гость";
+        localStorage.setItem("millionaire.playerName", state.playerName);
+        toast("Имя игрока сохранено.");
+      });
+      $("#saveFirebase").addEventListener("click", async () => {
+        try {
+          await connectFirebase($("#firebaseConfig").value);
+          els.setupStatus.textContent = "Firebase подключен. Турнирная таблица будет общей.";
+        } catch (error) {
+          els.setupStatus.textContent = "Firebase config не подошел. Проверьте JSON и настройки Firestore.";
+        }
+      });
+      $("#fiftyBtn").addEventListener("click", useFifty);
+      $("#audienceBtn").addEventListener("click", useAudience);
+      $("#phoneBtn").addEventListener("click", usePhone);
+      $("#closeAudience").addEventListener("click", () => els.audienceModal.classList.remove("open"));
+      $("#walkAwayBtn").addEventListener("click", walkAway);
+      $("#restartBtn").addEventListener("click", resetToIntro);
+      $("#playAgain").addEventListener("click", resetToIntro);
+      $("#saveScoreBtn").addEventListener("click", saveScore);
+      els.soundToggle.addEventListener("click", () => {
+        state.sound = !state.sound;
+        localStorage.setItem("millionaire.sound", state.sound ? "on" : "off");
+        els.soundToggle.textContent = `Звук: ${state.sound ? "вкл" : "выкл"}`;
+      });
+    }
+
+    function init() {
+      const savedEmployees = JSON.parse(localStorage.getItem("millionaire.employees") || "null");
+      state.employees = Array.isArray(savedEmployees) && savedEmployees.length >= 4 ? savedEmployees : sampleEmployees;
+      $("#playerName").value = state.playerName;
+      els.resultPlayerName.value = state.playerName;
+      els.soundToggle.textContent = `Звук: ${state.sound ? "вкл" : "выкл"}`;
+      const savedFirebase = localStorage.getItem("millionaire.firebaseConfig");
+      if (savedFirebase) {
+        $("#firebaseConfig").value = savedFirebase;
+        connectFirebase(savedFirebase).catch(() => {});
+      }
+      renderMoney();
+      loadLeaderboard();
+      wireEvents();
+    }
+
+    init();
+  </script>
+</body>
+</html>
