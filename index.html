@@ -1058,29 +1058,117 @@
       window.setTimeout(() => els.toast.classList.remove("open"), 3200);
     }
 
-    let audioCtx;
-    function beep(type = "tick") {
-      if (!state.sound) return;
-      audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-      const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      const settings = {
-        tick: [440, 660, .08],
-        lock: [220, 520, .18],
-        correct: [540, 920, .32],
-        wrong: [180, 90, .45],
-        win: [660, 1040, .65]
-      }[type];
-      osc.frequency.setValueAtTime(settings[0], now);
-      osc.frequency.exponentialRampToValueAtTime(settings[1], now + settings[2]);
-      gain.gain.setValueAtTime(.0001, now);
-      gain.gain.exponentialRampToValueAtTime(.16, now + .02);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + settings[2]);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + settings[2] + .02);
+    const ANSWER_REVEAL_DELAY = 5000;
+    const soundFiles = {
+      intro: "intro.mp3",
+      firstQuestionBegin: "first question begin.mp3",
+      back: "back.mp3",
+      finalQuestion: "final question.mp3",
+      answer: "answer.mp3",
+      firstQuestionRight: "first question.mp3",
+      tenthQuestionRight: "10 question right.mp3",
+      rightAnswer: "right answer.mp3",
+      wrongAnswer: "wrong answer.mp3",
+      loose: "loose.mp3",
+      win: "win.mp3",
+      fifty: "5050.mp3",
+      audience: "audience.mp3",
+      friend: "friend.mp3"
+    };
+    const loopSounds = new Set(["intro", "back", "finalQuestion", "audience", "friend", "loose"]);
+    const sounds = Object.fromEntries(Object.entries(soundFiles).map(([key, src]) => {
+      const audio = new Audio(src);
+      audio.preload = "auto";
+      audio.loop = loopSounds.has(key);
+      return [key, audio];
+    }));
+    let activeQuestionBed = null;
+
+    function stopSound(key, reset = true) {
+      const audio = sounds[key];
+      if (!audio) return;
+      audio.pause();
+      if (reset) audio.currentTime = 0;
+    }
+
+    function stopGroup(keys) {
+      keys.forEach(key => stopSound(key));
+    }
+
+    function stopQuestionAudio() {
+      stopGroup(["firstQuestionBegin", "back", "finalQuestion", "friend", "audience"]);
+      activeQuestionBed = null;
+    }
+
+    function stopAllAudio() {
+      Object.keys(sounds).forEach(key => stopSound(key));
+      activeQuestionBed = null;
+    }
+
+    async function playSound(key, { restart = true } = {}) {
+      const audio = sounds[key];
+      if (!audio || !state.sound) return false;
+      try {
+        if (restart) audio.currentTime = 0;
+        await audio.play();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function playOnceThen(key, callback, fallbackMs = 2200) {
+      const audio = sounds[key];
+      if (!audio || !state.sound) {
+        window.setTimeout(callback, 650);
+        return;
+      }
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        audio.removeEventListener("ended", finish);
+        window.clearTimeout(fallback);
+        callback();
+      };
+      const fallback = window.setTimeout(finish, fallbackMs);
+      audio.loop = false;
+      audio.addEventListener("ended", finish);
+      playSound(key).then(played => {
+        if (!played) finish();
+      });
+    }
+
+    function startQuestionBed() {
+      stopGroup(["back", "finalQuestion", "firstQuestionBegin", "friend", "audience"]);
+      if (state.index === 0) {
+        activeQuestionBed = "back";
+        const intro = sounds.firstQuestionBegin;
+        if (!state.sound || !intro) {
+          playSound("back");
+          return;
+        }
+        intro.loop = false;
+        intro.onended = () => playSound("back");
+        playSound("firstQuestionBegin").then(played => {
+          if (!played) playSound("back");
+        });
+        return;
+      }
+      activeQuestionBed = state.index === prizes.length - 1 ? "finalQuestion" : "back";
+      playSound(activeQuestionBed);
+    }
+
+    function resumeQuestionBed() {
+      if (!activeQuestionBed || state.locked) return;
+      playSound(activeQuestionBed, { restart: false });
+    }
+
+    function correctSoundForCurrentQuestion() {
+      if (state.index === 0) return "firstQuestionRight";
+      if (state.index === 9) return "tenthQuestionRight";
+      if (state.index === prizes.length - 1) return "win";
+      return "rightAnswer";
     }
 
     function renderMoney() {
@@ -1234,8 +1322,8 @@
       els.game.classList.add("active");
       els.game.classList.remove("hidden");
       els.phoneBubble.classList.remove("open");
+      stopAllAudio();
       renderQuestion();
-      beep("tick");
     }
 
     function renderQuestion() {
@@ -1266,6 +1354,7 @@
       $("#audienceBtn").classList.toggle("used", state.lifelines.audience);
       $("#phoneBtn").classList.toggle("used", state.lifelines.phone);
       renderMoney();
+      startQuestionBed();
     }
 
     function hostLine() {
@@ -1282,27 +1371,32 @@
       if (state.locked) return;
       state.locked = true;
       button.classList.add("locked");
-      beep("lock");
+      stopQuestionAudio();
+      playSound("answer");
       window.setTimeout(() => {
+        stopSound("answer");
         const buttons = [...els.answers.querySelectorAll(".answer")];
         buttons.forEach(item => {
           item.disabled = true;
           if (item.dataset.correct === "true") item.classList.add("correct");
         });
         if (option.correct) {
-          beep(state.index === 14 ? "win" : "correct");
+          const resultSound = correctSoundForCurrentQuestion();
           if (state.index === prizes.length - 1) {
-            finishGame("win", prizes[prizes.length - 1]);
+            playSound(resultSound);
+            finishGame("win", prizes[prizes.length - 1], false);
           } else {
-            state.index++;
-            window.setTimeout(renderQuestion, 1100);
+            playOnceThen(resultSound, () => {
+              state.index++;
+              renderQuestion();
+            }, resultSound === "tenthQuestionRight" ? 3600 : 2400);
           }
         } else {
           button.classList.add("wrong");
-          beep("wrong");
+          playSound("wrongAnswer");
           finishGame("lost", guaranteedPrize(), true);
         }
-      }, 900);
+      }, ANSWER_REVEAL_DELAY);
     }
 
     function useFifty() {
@@ -1313,7 +1407,7 @@
       shuffle(wrongButtons).slice(0, 2).forEach(button => button.classList.add("hidden-option"));
       $("#fiftyBtn").classList.add("used");
       toast("Два неправильных варианта исчезли.");
-      beep("tick");
+      playSound("fifty");
     }
 
     function useAudience() {
@@ -1330,7 +1424,8 @@
         els.audienceBars.appendChild(wrap);
       });
       els.audienceModal.classList.add("open");
-      beep("tick");
+      stopGroup(["back", "finalQuestion", "firstQuestionBegin", "friend"]);
+      playSound("audience");
     }
 
     function randomAudience(correctIndex) {
@@ -1355,7 +1450,8 @@
       els.phoneBubble.innerHTML = `<strong>Звонок другу</strong><br>Да, привет. Я почти уверен, что правильный ответ — <strong>${answer}</strong>. Голос в трубке звучит подозрительно уверенно.`;
       els.phoneBubble.classList.add("open");
       window.setTimeout(() => els.phoneBubble.classList.remove("open"), 7200);
-      beep("tick");
+      stopGroup(["back", "finalQuestion", "firstQuestionBegin"]);
+      playSound("friend");
     }
 
     function walkAway() {
@@ -1364,6 +1460,7 @@
     }
 
     function finishGame(type, amount, delayed = false) {
+      stopQuestionAudio();
       state.lastOutcome = { type, amount, question: state.index + 1 };
       const show = () => {
         const title = type === "win" ? "Вы миллионер!" : type === "walk" ? "Деньги забраны" : "Неверный ответ";
@@ -1376,6 +1473,7 @@
         els.resultText.textContent = text;
         els.resultPlayerName.value = state.playerName || "";
         els.resultModal.classList.add("open");
+        if (type === "lost") playSound("loose");
       };
       window.setTimeout(show, delayed ? 1250 : 250);
     }
@@ -1504,6 +1602,7 @@
     }
 
     function resetToIntro() {
+      stopAllAudio();
       els.resultModal.classList.remove("open");
       els.game.classList.remove("active");
       els.game.classList.add("hidden");
@@ -1536,7 +1635,11 @@
       $("#fiftyBtn").addEventListener("click", useFifty);
       $("#audienceBtn").addEventListener("click", useAudience);
       $("#phoneBtn").addEventListener("click", usePhone);
-      $("#closeAudience").addEventListener("click", () => els.audienceModal.classList.remove("open"));
+      $("#closeAudience").addEventListener("click", () => {
+        stopSound("audience");
+        els.audienceModal.classList.remove("open");
+        resumeQuestionBed();
+      });
       $("#walkAwayBtn").addEventListener("click", walkAway);
       $("#restartBtn").addEventListener("click", resetToIntro);
       $("#playAgain").addEventListener("click", resetToIntro);
@@ -1545,6 +1648,13 @@
         state.sound = !state.sound;
         localStorage.setItem("millionaire.sound", state.sound ? "on" : "off");
         els.soundToggle.textContent = `Звук: ${state.sound ? "вкл" : "выкл"}`;
+        if (!state.sound) {
+          stopAllAudio();
+        } else if (els.game.classList.contains("active") && !state.locked) {
+          resumeQuestionBed();
+        } else if (els.intro.classList.contains("active")) {
+          playSound("intro", { restart: false });
+        }
       });
     }
 
@@ -1562,6 +1672,7 @@
       renderMoney();
       loadLeaderboard();
       wireEvents();
+      playSound("intro");
     }
 
     init();
