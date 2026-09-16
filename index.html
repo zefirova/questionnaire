@@ -817,7 +817,7 @@
       </div>
       <div class="top-actions">
         <button class="btn ghost sound-toggle" id="soundToggle" type="button" aria-label="Включить или выключить звук">Звук: вкл</button>
-        <button class="btn ghost" id="openSetup" type="button">База и Firebase</button>
+        <button class="btn ghost" id="openSetup" type="button" hidden>База и Firebase</button>
       </div>
     </header>
 
@@ -1655,6 +1655,33 @@
       renderMoney();
     }
 
+    function revealSetupButton() {
+      const setupButton = $("#openSetup");
+      if (!setupButton.hidden) return;
+      setupButton.hidden = false;
+      toast("Режим ведущего открыт.");
+    }
+
+    function wireSecretSetupCode() {
+      const code = "24601";
+      let progress = "";
+      window.addEventListener("keydown", event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (!/^\d$/.test(event.key)) {
+          progress = "";
+          return;
+        }
+        progress = `${progress}${event.key}`;
+        if (!code.startsWith(progress)) {
+          progress = event.key === code[0] ? event.key : "";
+        }
+        if (progress === code) {
+          progress = "";
+          revealSetupButton();
+        }
+      });
+    }
+
     function wireEvents() {
       $("#startGame").addEventListener("click", startGame);
       $("#showBoard").addEventListener("click", showLeaderboardOnly);
@@ -1716,6 +1743,7 @@
       renderMoney();
       loadLeaderboard();
       wireEvents();
+      wireSecretSetupCode();
       playSound("intro");
     }
 
