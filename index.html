@@ -835,7 +835,7 @@
               <button class="btn ghost" id="showBoard" type="button">Турнирная таблица</button>
             </div>
           </div>
-          <p class="hint">Для боевого запуска импортируйте CSV из Google Таблицы и вставьте Firebase config в настройках.</p>
+          <p class="hint" id="audioStatus">Загружаю звук для игры...</p>
         </div>
 
         <div class="game hidden" id="game">
@@ -1124,7 +1124,81 @@
       audio.loop = loopSounds.has(key);
       return [key, audio];
     }));
+    const soundPreload = {
+      ready: false,
+      started: false,
+      promise: null,
+      loaded: 0,
+      total: Object.keys(soundFiles).length
+    };
     let activeQuestionBed = null;
+
+    function setAudioStatus(message) {
+      const status = $("#audioStatus");
+      if (status) status.textContent = message;
+    }
+
+    function waitForPlayable(audio) {
+      return new Promise(resolve => {
+        if (audio.readyState >= 3) {
+          resolve();
+          return;
+        }
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          audio.removeEventListener("canplaythrough", finish);
+          audio.removeEventListener("loadeddata", finish);
+          audio.removeEventListener("error", finish);
+          window.clearTimeout(fallback);
+          resolve();
+        };
+        const fallback = window.setTimeout(finish, 1800);
+        audio.addEventListener("canplaythrough", finish, { once: true });
+        audio.addEventListener("loadeddata", finish, { once: true });
+        audio.addEventListener("error", finish, { once: true });
+        audio.load();
+      });
+    }
+
+    function preloadSoundAssets() {
+      if (soundPreload.promise) return soundPreload.promise;
+      soundPreload.started = true;
+      setAudioStatus(`Загружаю звук: 0/${soundPreload.total}`);
+      soundPreload.promise = Promise.all(Object.entries(soundFiles).map(async ([key, src]) => {
+        const audio = sounds[key];
+        try {
+          const response = await fetch(encodeURI(src), { cache: "force-cache" });
+          if (!response.ok) throw new Error(`Audio fetch failed: ${src}`);
+          const blob = await response.blob();
+          audio.src = URL.createObjectURL(blob);
+        } catch (error) {
+          audio.src = src;
+        }
+        audio.preload = "auto";
+        audio.loop = loopSounds.has(key);
+        await waitForPlayable(audio);
+        soundPreload.loaded += 1;
+        setAudioStatus(`Загружаю звук: ${soundPreload.loaded}/${soundPreload.total}`);
+      })).then(() => {
+        soundPreload.ready = true;
+        setAudioStatus("Звук готов. Можно начинать.");
+      }).catch(() => {
+        soundPreload.ready = true;
+        setAudioStatus("Звук готов. Можно начинать.");
+      });
+      return soundPreload.promise;
+    }
+
+    async function ensureSoundsReady() {
+      if (!state.sound) return;
+      if (!soundPreload.started) preloadSoundAssets();
+      if (!soundPreload.ready) {
+        setAudioStatus("Догружаю звук перед стартом...");
+        await soundPreload.promise;
+      }
+    }
 
     function stopSound(key, reset = true) {
       const audio = sounds[key];
@@ -1352,7 +1426,13 @@
       return { prompt: candidate.prompt, answer: candidate.answer, options };
     }
 
-    function startGame() {
+    async function startGame() {
+      const startButton = $("#startGame");
+      startButton.disabled = true;
+      startButton.textContent = "Загружаю звук...";
+      await ensureSoundsReady();
+      startButton.disabled = false;
+      startButton.textContent = "Начать игру";
       const name = ($("#playerName").value || state.playerName || "Гость").trim();
       state.playerName = name;
       localStorage.setItem("millionaire.playerName", name);
@@ -1364,6 +1444,8 @@
       state.questions = generateQuestions(state.employees);
       if (state.employees.length < 4) {
         toast("Нужно минимум 4 сотрудника, чтобы собрать варианты ответов.");
+        startButton.disabled = false;
+        startButton.textContent = "Начать игру";
         return;
       }
       if (state.questions.length < 15) {
@@ -1752,7 +1834,7 @@
       loadLeaderboard();
       wireEvents();
       wireSecretSetupCode();
-      playSound("intro");
+      preloadSoundAssets().then(() => playSound("intro"));
     }
 
     init();
