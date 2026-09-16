@@ -1311,6 +1311,10 @@
       return 0;
     }
 
+    function canSaveOutcome(type, amount) {
+      return type !== "lost" || amount > 0;
+    }
+
     function isSkippedAnswer(value) {
       return /^[-–—]+$/.test(String(value || "").trim());
     }
@@ -1375,17 +1379,36 @@
       return parseCsv(text).map(normalizeEmployee).filter(Boolean);
     }
 
+    function comparableFactValue(value) {
+      return String(value || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .replace(/[«»"']/g, "")
+        .toLocaleLowerCase("ru-RU");
+    }
+
     function generateQuestions(employees) {
       const candidates = [];
       const templateByKey = Object.values(fieldMap).reduce((acc, template) => {
         acc[template.key] = template;
         return acc;
       }, {});
+      const factCounts = {};
+
+      employees.forEach(employee => {
+        Object.keys(templateByKey).forEach(key => {
+          const value = comparableFactValue(employee[key]);
+          if (!value) return;
+          const factId = `${key}:${value}`;
+          factCounts[factId] = (factCounts[factId] || 0) + 1;
+        });
+      });
 
       employees.forEach(employee => {
         Object.keys(templateByKey).forEach(key => {
           const value = String(employee[key] || "").trim();
-          if (value) {
+          const factId = `${key}:${comparableFactValue(value)}`;
+          if (value && factCounts[factId] === 1) {
             candidates.push({
               employee,
               answer: employee.name,
@@ -1598,14 +1621,19 @@
       state.lastOutcome = { type, amount, question: state.index + 1 };
       const show = () => {
         const title = type === "win" ? "Вы миллионер!" : type === "walk" ? "Деньги забраны" : "Неверный ответ";
+        const canSave = canSaveOutcome(type, amount);
         const text = type === "win"
           ? `Финал взят. В турнирную таблицу уйдет ${formatMoney(amount)} и статус человека, который слишком хорошо знает коллег.`
           : type === "walk"
             ? `Вы остановились и забрали ${formatMoney(amount)}. Иногда мудрость выглядит именно так.`
-            : `Игра окончена. Несгораемая сумма: ${formatMoney(amount)}. Можно записать результат и попробовать еще раз.`;
+            : canSave
+              ? `Игра окончена. Несгораемая сумма: ${formatMoney(amount)}. Можно записать результат и попробовать еще раз.`
+              : "Игра окончена. До первой несгораемой суммы дойти не удалось, поэтому в турнирную таблицу этот заход не записываем.";
         els.resultTitle.textContent = title;
         els.resultText.textContent = text;
         els.resultPlayerName.value = state.playerName || "";
+        els.resultPlayerName.hidden = !canSave;
+        $("#saveScoreBtn").hidden = !canSave;
         els.resultModal.classList.add("open");
         if (type === "lost") playSound("loose");
       };
@@ -1613,6 +1641,10 @@
     }
 
     async function saveScore() {
+      if (!canSaveOutcome(state.lastOutcome?.type, state.lastOutcome?.amount || 0)) {
+        toast("До первой несгораемой суммы результат не записывается.");
+        return;
+      }
       const name = ($("#resultPlayerName").value || state.playerName || "Гость").trim();
       state.playerName = name;
       localStorage.setItem("millionaire.playerName", name);
